@@ -1171,6 +1171,95 @@ img { display:block; }
   </div>
 </div>
 
+<!-- ══ PRODUCT PREVIEW MODAL ══ -->
+<div id="preview-modal" style="display:none;position:fixed;inset:0;z-index:900;
+  background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#fff;border-radius:24px;max-width:520px;width:100%;
+    box-shadow:0 20px 60px rgba(0,0,0,.25);
+    animation:popIn .28s cubic-bezier(.34,1.56,.64,1);
+    max-height:92vh;overflow-y:auto;position:relative;">
+
+    <!-- زر الإغلاق خارج الصورة تماماً -->
+    <button onclick="closePreview()" style="position:sticky;top:8px;right:0;
+      float:left;margin:8px 8px 0 0;z-index:10;
+      background:rgba(0,0,0,.55);border:none;border-radius:50%;
+      width:36px;height:36px;font-size:18px;color:#fff;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      flex-shrink:0;">✕</button>
+
+    <!-- صورة -->
+    <div id="pm-img-wrap" style="width:100%;height:220px;position:relative;
+      background:linear-gradient(135deg,#fdf0d8,#ecddc0);
+      display:flex;align-items:center;justify-content:center;font-size:80px;overflow:hidden;">
+      <span id="pm-badge-preview" style="display:none;position:absolute;top:12px;right:12px;
+        background:linear-gradient(135deg,#f5c040,#c8760a);color:#fff;
+        padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;">⭐ مميز</span>
+    </div>
+
+    <!-- تفاصيل -->
+    <div style="padding:20px 22px 24px;">
+      <div id="pm-cat-preview" style="display:inline-block;background:#fff3e0;
+        border:1px solid rgba(0,0,0,.07);border-radius:20px;padding:3px 12px;
+        font-size:12px;color:#8a7060;margin-bottom:10px;"></div>
+      <h2 id="pm-name-preview" style="font-size:22px;color:#1a0e00;
+        margin-bottom:8px;line-height:1.3;font-family:'Cairo',sans-serif;font-weight:700;"></h2>
+
+      <!-- تقييم -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+        <span id="pm-stars-preview" style="color:#e8971a;font-size:15px;letter-spacing:2px;"></span>
+        <span id="pm-rating-preview" style="font-size:12px;color:#8a7060;"></span>
+      </div>
+
+      <!-- سعر + وزن -->
+      <div style="display:flex;align-items:center;gap:20px;
+        background:linear-gradient(135deg,#fdf6e3,#fff8f0);
+        border:1px solid rgba(200,118,10,.15);border-radius:16px;
+        padding:14px 18px;margin-bottom:16px;">
+        <div>
+          <div style="font-size:11px;color:#8a7060;margin-bottom:2px;">السعر</div>
+          <div style="display:flex;align-items:baseline;gap:4px;">
+            <span id="pm-price-preview" style="font-size:28px;font-weight:900;color:#c8760a;"></span>
+            <span style="font-size:13px;color:#8a7060;">شيكل</span>
+          </div>
+        </div>
+        <div style="border-right:1px solid rgba(0,0,0,.07);padding-right:20px;">
+          <div style="font-size:11px;color:#8a7060;margin-bottom:4px;">الوزن</div>
+          <div id="pm-weight-preview" style="font-weight:700;color:#1a0e00;font-size:15px;"></div>
+        </div>
+      </div>
+
+      <!-- وصف -->
+      <div style="margin-bottom:20px;">
+        <div style="font-size:12px;font-weight:700;color:#8a7060;margin-bottom:8px;">📝 وصف المنتج</div>
+        <div id="pm-desc-preview" style="font-size:14px;color:#8a7060;line-height:2;
+          background:#fff9f0;border-radius:10px;padding:14px 16px;
+          border:1px solid rgba(0,0,0,.07);max-height:130px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- كمية + إضافة + مفضلة -->
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="display:flex;align-items:center;border:1.5px solid #e0d5c8;
+          border-radius:10px;overflow:hidden;background:#fff3e0;flex-shrink:0;">
+          <button onclick="previewQtyChange(-1)" style="width:38px;height:46px;border:none;
+            background:none;font-size:22px;cursor:pointer;color:#1a0e00;">−</button>
+          <span id="pm-qty-preview" style="min-width:36px;text-align:center;
+            font-size:17px;font-weight:700;color:#1a0e00;">1</span>
+          <button onclick="previewQtyChange(1)" style="width:38px;height:46px;border:none;
+            background:none;font-size:22px;cursor:pointer;color:#1a0e00;">+</button>
+        </div>
+        <button onclick="addFromPreview()" style="flex:1;padding:14px;
+          background:linear-gradient(135deg,#4a1275,#7b2fbe);color:#fff;border:none;
+          border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;
+          font-family:'Cairo',sans-serif;">🛒 أضف للسلة</button>
+        <button id="pm-fav-preview" onclick="toggleFavFromPreview()"
+          style="width:48px;height:48px;border:1.5px solid #e0d5c8;background:#fff;
+          border-radius:10px;font-size:22px;cursor:pointer;flex-shrink:0;
+          display:flex;align-items:center;justify-content:center;">🤍</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════ NAVBAR ══════════ -->
 <nav id="navbar">
   <div class="nav-inner">
@@ -1825,15 +1914,17 @@ function starsHTML(rating) {
 function prodCardHTML(p) {
   const fav = favorites.has(p.id);
   const imgBlock = p.img
-    ? `<div class="prod-img-wrap"><img class="prod-img" src="${p.img}" alt="${p.name}"
-         onerror="this.parentElement.outerHTML='<div class=\\'prod-img-ph\\'>🍯</div>'"></div>`
-    : `<div class="prod-img-ph">🍯</div>`;
+    ? `<div class="prod-img-wrap" onclick="openPreview(${p.id})" style="cursor:pointer">
+         <img class="prod-img" src="${p.img}" alt="${p.name}"
+           onerror="this.parentElement.outerHTML='<div class=\\'prod-img-ph\\' onclick=\\'openPreview(${p.id})\\' style=\\'cursor:pointer\\'>🍯</div>'">
+       </div>`
+    : `<div class="prod-img-ph" onclick="openPreview(${p.id})" style="cursor:pointer">🍯</div>`;
   return `<div class="prod-card">
     ${imgBlock}
     ${p.featured ? '<div class="prod-badge">⭐ مميز</div>' : ""}
     <button class="fav-btn ${fav?'active':''}" onclick="event.stopPropagation();toggleFav(${p.id})"
       title="${fav?'إزالة من المفضلة':'إضافة للمفضلة'}">${fav?"❤️":"🤍"}</button>
-    <div class="prod-body" onclick="openDetail(${p.id})">
+    <div class="prod-body" onclick="openPreview(${p.id})">
       <div class="prod-name">${p.name}</div>
       <div class="prod-cat">${p.cat||""}</div>
       <div class="prod-row">
@@ -1843,6 +1934,97 @@ function prodCardHTML(p) {
       <button class="add-cart-btn" onclick="event.stopPropagation();addToCart(${p.id})">🛒 أضف للسلة</button>
     </div>
   </div>`;
+}
+
+// ════ PRODUCT PREVIEW MODAL ════
+let previewQty = 1;
+
+function openPreview(id) {
+  const p = allProducts.find(x => x.id === id);
+  if (!p) return;
+  currentProduct = p;
+  previewQty = 1;
+
+  // صورة المنتج — امسح الصور القديمة واحتفظ بالأزرار
+  const imgWrap = document.getElementById("pm-img-wrap");
+  imgWrap.querySelectorAll("img, .prev-ph-span").forEach(el => el.remove());
+  if (p.img) {
+    const img = document.createElement("img");
+    img.src = p.img;
+    img.alt = p.name;
+    img.style.cssText = "width:100%;height:100%;object-fit:cover;position:absolute;inset:0;display:block;";
+    img.onerror = function() {
+      this.remove();
+      const ph = document.createElement("span");
+      ph.className = "prev-ph-span";
+      ph.textContent = "🍯";
+      ph.style.fontSize = "80px";
+      imgWrap.appendChild(ph);
+    };
+    imgWrap.appendChild(img);
+  } else {
+    const ph = document.createElement("span");
+    ph.className = "prev-ph-span";
+    ph.textContent = "🍯";
+    ph.style.fontSize = "80px";
+    imgWrap.appendChild(ph);
+  }
+
+  // بادج المميز
+  document.getElementById("pm-badge-preview").style.display = p.featured ? "inline-block" : "none";
+
+  // بيانات المنتج
+  document.getElementById("pm-cat-preview").textContent    = "📂 " + (p.cat || "عام");
+  document.getElementById("pm-name-preview").textContent   = p.name;
+  document.getElementById("pm-stars-preview").textContent  = starsHTML(p.rating);
+  document.getElementById("pm-rating-preview").textContent = (p.rating || 4.5) + " / 5";
+  document.getElementById("pm-price-preview").textContent  = p.price;
+  document.getElementById("pm-weight-preview").textContent = (p.weight || 500) + " غرام";
+  document.getElementById("pm-desc-preview").textContent   = p.desc || "لا يوجد وصف لهذا المنتج حالياً.";
+  document.getElementById("pm-qty-preview").textContent    = "1";
+
+  // المفضلة
+  const isFav = favorites.has(p.id);
+  const fBtn  = document.getElementById("pm-fav-preview");
+  fBtn.textContent       = isFav ? "❤️" : "🤍";
+  fBtn.style.borderColor = isFav ? "#dc2626" : "#e0d5c8";
+  fBtn.style.background  = isFav ? "#fff0f0" : "#fff";
+
+  // فتح النافذة
+  const modal = document.getElementById("preview-modal");
+  modal.style.display = "flex";
+  document.body.style.overflow = "hidden";
+}
+
+function closePreview() {
+  document.getElementById("preview-modal").style.display = "none";
+  document.body.style.overflow = "";
+}
+
+// إغلاق عند الضغط خارج النافذة
+document.getElementById("preview-modal").addEventListener("click", function(e) {
+  if (e.target === this) closePreview();
+});
+
+function previewQtyChange(d) {
+  previewQty = Math.max(1, previewQty + d);
+  document.getElementById("pm-qty-preview").textContent = previewQty;
+}
+function addFromPreview() {
+  if (!currentProduct) return;
+  for (let i = 0; i < previewQty; i++) addToCart(currentProduct.id, true);
+  showToast("✅ أُضيف " + previewQty + " × " + currentProduct.name + " للسلة");
+  closePreview();
+}
+function toggleFavFromPreview() {
+  if (!currentProduct) return;
+  toggleFav(currentProduct.id, true);
+  const isFav = favorites.has(currentProduct.id);
+  const fBtn  = document.getElementById("pm-fav-preview");
+  fBtn.textContent       = isFav ? "❤️" : "🤍";
+  fBtn.style.borderColor = isFav ? "#dc2626" : "#e0d5c8";
+  fBtn.style.background  = isFav ? "#fff0f0" : "#fff";
+  showToast(isFav ? "❤️ أُضيف للمفضلة" : "تمت الإزالة من المفضلة");
 }
 
 // ════ DETAIL ════
@@ -1865,7 +2047,6 @@ function openDetail(id) {
   document.getElementById("detail-rating-num").textContent = `${p.rating||4.5} / 5`;
   document.getElementById("detail-meta").innerHTML =
     `<span class="meta-chip">⚖️ ${p.weight||500} غرام</span>
-     <span class="meta-chip">📦 ${p.stock||0} متوفر</span>
      <span class="meta-chip">📂 ${p.cat||"عام"}</span>`;
   document.getElementById("detail-desc").textContent = p.desc || "لا يوجد وصف لهذا المنتج.";
 
@@ -2363,7 +2544,9 @@ document.getElementById("confirm-ok-btn").onclick = () => {
 
 // Close modals on overlay click
 document.querySelectorAll(".modal-overlay").forEach(o => {
-  o.addEventListener("click", e => { if (e.target === o) o.classList.remove("open"); });
+  o.addEventListener("click", e => {
+    if (e.target === o) o.classList.remove("open");
+  });
 });
 </script>
 </body>
